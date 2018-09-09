@@ -73,24 +73,16 @@ First of all, I analyzed all color channels available to me in "./notebooks/Colo
 </figure>
 
 
-
-
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
-The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
+Perspective transform allows to view the road from a top-down perspective. This helps detect lines better, specifically in the distance. This is also a prerequisite for more advanced techniques of merging lane pixels into lines.
 
-```python
-src = np.float32(
-    [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-    [((img_size[0] / 6) - 10), img_size[1]],
-    [(img_size[0] * 5 / 6) + 60, img_size[1]],
-    [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-dst = np.float32(
-    [[(img_size[0] / 4), 0],
-    [(img_size[0] / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), 0]])
-```
+To warp the perspective, I opened an arbitrary image editing program and found pixel coordinates for points I want to crop the image to. The resulting points are:
+
+
+-----------------
+
+
 
 This resulted in the following source and destination points:
 
