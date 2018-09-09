@@ -1,36 +1,27 @@
-## Writeup
+## Advanced Lane Finding Project
 
 ---
 
-As with every project, I started off by tidying up a bit. I've created a **data** folder to hold all the given data files and the **notebooks** folder for all my investigations. I'm a fan of keeping everything modular, so I may decide to have different notebooks for different components of the project. I have also decided to extract certain parts of my project into python modules, which you can find in the **src** folder. Overall, the layout should resemble the one proposed [Cook Cutter Data Science](https://drivendata.github.io/cookiecutter-data-science/).
- 
-TODO:
-* "Please save your output images to this folder and include a description in your README of what each image shows."
+### Overview
+This writeup shall describe what I have achieved for the Advanced Lane Lines detection task. I spent over 50 hours on it, and despite a promising start, did not manage to achieve good results for the challenge videos. You shall find a brief overview of my approaches and descriptions of both things that worked and those that didn't work.
 
----
-
-**Advanced Lane Finding Project**
-
-The goals / steps of this project are the following:
-
+#### Project Goals
 * Compute the camera calibration matrix and distortion coefficients given a set of chessboard images.
 * Apply a distortion correction to raw images.
 * Use color transforms, gradients, etc., to create a thresholded binary image.
 * Apply a perspective transform to rectify binary image ("birds-eye view").
 * Detect lane pixels and fit to find the lane boundary.
-* Determine the curvature of the lane and vehicle position with respect to center.
 * Warp the detected lane boundaries back onto the original image.
+* Determine the curvature of the lane and vehicle position with respect to center.
 * Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
 
-[//]: # (Image References)
+#### Set Up
+As with every project, I started off by tidying up a bit. I've created a **data** folder to hold all the given data files and the **notebooks** folder for all my investigations. I'm a fan of keeping everything modular, so I may decide to have different notebooks for different components of the project. I have also decided to extract certain parts of my project into python modules, which you can find in the **src** folder. Overall, the layout should resemble the one proposed [Cook Cutter Data Science](https://drivendata.github.io/cookiecutter-data-science/).
 
-[image1]: ./examples/undistort_output.png "Undistorted"
-[image2]: ./test_images/test1.jpg "Road Transformed"
-[image3]: ./examples/binary_combo_example.jpg "Binary Example"
-[image4]: ./examples/warped_straight_lines.jpg "Warp Example"
-[image5]: ./examples/color_fit_lines.jpg "Fit Visual"
-[image6]: ./examples/example_output.jpg "Output"
-[video1]: ./project_video.mp4 "Video"
+#### General Approach
+I started off by examining differnet parts of the pipeline, each in a separate notebook. Ultimately, despite figuring out what each part does, the majority on the project involved putting everything together and then tuning hyperparameters. This proved to bea easier on all videos at once (since I was aiming for success on at least once challenge video.). Ultimately, I ended up generating about 8GB of video data, with different combinations of threshold parameters. This overshadowed any initial explorations.
+
+As mentioned just now, having completed the initial exploration of the different parts, I bundled everything together into a Final Notebook and continued experimenting on different hyperparameters in it.
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
 
@@ -39,35 +30,50 @@ The goals / steps of this project are the following:
 ---
 
 ### Writeup / README
-
-#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Advanced-Lane-Lines/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
-
-You're reading it!
+Problems faced, failure cases and possible improvements shall be discussed within each section.
 
 ### Camera Calibration
 
 #### 1. Briefly state how you computed the camera matrix and distortion coefficients. Provide an example of a distortion corrected calibration image.
 
-The code for this step is contained in the first code cell of the IPython notebook located in "./examples/example.ipynb" (or in lines # through # of the file called `some_file.py`).  
+The code for this step can be found in both "./notebooks/Camera Calibration.ipynb" notebook. Here, I save the matrices for later use. This allows me to load them every time I want to undistrot the image. This is done using the `apply_precomputed_undistortion` function in the Final Notebook.
 
-I start by preparing "object points", which will be the (x, y, z) coordinates of the chessboard corners in the world. Here I am assuming the chessboard is fixed on the (x, y) plane at z=0, such that the object points are the same for each calibration image.  Thus, `objp` is just a replicated array of coordinates, and `objpoints` will be appended with a copy of it every time I successfully detect all chessboard corners in a test image.  `imgpoints` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful chessboard detection.  
+In terms of implementation, there's not much variation here - I calibrated the camera in the same way as is usually done in the industry:
 
-I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function.  I applied this distortion correction to the test image using the `cv2.undistort()` function and obtained this result: 
+I start by preparing "object points", which will be the (x, y, z) coordinates of the chessboard corners in the world. Here I am assuming the chessboard is fixed on the (x, y) plane at z=0, such that the object points are the same for each calibration image. Thus, `objp` is just a replicated array of coordinates, and `objpoints` will be appended with a copy of it every time I successfully detect all chessboard corners in a test image.  `imgpoints` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful chessboard detection.  
 
-![alt text][image1]
+I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function. I applied this distortion correction to the test image using the `cv2.undistort()` function and obtained this result: 
+
+<figure>
+	<center>
+		<img src="./results/writeup/chess_distorted.jpg" width="40%">
+		<img src="./results/writeup/chess_undistorted.jpg" width="40%">
+		<figcaption>Distorted and Undistorted chessboard examples</figcaption>
+	</center>
+</figure>
+
 
 ### Pipeline (single images)
 
 #### 1. Provide an example of a distortion-corrected image.
 
 To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
-![alt text][image2]
 
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+Color transformations, gradients and the combinations of the two, was my largest area of experimentation.
 
-![alt text][image3]
+First of all, I analyzed all color channels available to me in "./notebooks/Color Detection and Thresholding.ipynb" notebook. Here, I plotted Red, Green, Blue, Hue, Saturation, Lightness and Value channels next to each other. This let me gain a decent understanding in what I can expect from each of those. Then, in the same notebook, I explored different kinds of thresholding - color-based, gradient direction-based, gradient magnitude-based and their combinations.
+
+<figure>
+	<center>
+		<img src="./results/writeup/hls_images.png" width="70%">
+		<figcaption>An example plot of HLS channels. I encourage the reader to open up the Color Detection and Thresholding notebook as it has more visualizations like this.</figcaption>
+	</center>
+</figure>
+
+
+
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
